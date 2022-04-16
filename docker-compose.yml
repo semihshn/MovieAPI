@@ -1,0 +1,46 @@
+version: '3'
+services:
+
+  db:
+    image: postgres
+    container_name: movie-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: sem-user
+      POSTGRES_PASSWORD: sem-password
+      POSTGRES_DB: postgres
+    networks:
+      - semNetwork
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - '6379:6379'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    networks:
+      - semNetwork
+
+  movie-application-api:
+    build: .
+    container_name: movie-application-api
+    depends_on:
+      - db
+      - redis
+    ports:
+      - '8080:8080'
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=sem-user
+      - SPRING_DATASOURCE_PASSWORD=sem-password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    networks:
+      - semNetwork
+
+networks:
+  semNetwork:
+    driver: "bridge"
